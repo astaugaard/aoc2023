@@ -1,0 +1,5 @@
+(executable
+ (public_name aoc2023)
+ (name main)
+ (preprocess (pps ppx_show))
+ (libraries lazy_list iter core angstrom ppx_show.runtime))
