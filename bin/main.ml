@@ -7,23 +7,17 @@ open Angstrom
 
 let parser = sep_by (char '\n') (many1 (not_char '\n'))
 
-(*  let show_data = Format.asprintf "@[%a@]" [%show: int list list] *)
-
-(*  let intSum (v: int list): int = List.fold v ~init:0 ~f:(+) *)
-
-exception Foo of string
-
-let fromSome a =  match a with
-                   | None -> raise (Foo "is none")
-                   | Some v -> v
-
 let rec extend l f = match l with
   | [] -> []
   | (_ :: bs) -> f l :: extend bs f
 
-let nconvertList l = extend l 
+let str_to_list l = Iter.of_str l |> Iter.to_list
+
+let convertList l = extend l 
   (fun c -> List.fold ~init:c ~f:
-               (fun str (l,r) -> List.is_prefix ~prefix:l str ~equal:Char.equal)
+               (fun str (l,r) -> if List.is_prefix ~prefix:(str_to_list l) str ~equal:Char.equal 
+                                 then str_to_list r 
+                                 else str)
             [("one","1");
              ("two","2");
              ("three","3");
@@ -32,20 +26,7 @@ let nconvertList l = extend l
              ("six","6");
              ("seven","7");
              ("eigh","8");
-             ("nine","9")]) (*  List.is_prefix ~prefix:"one" c ()) *)
-
-(* could replace this with a fold *)
-let convertString s = String.substr_replace_all ~pattern:"one" ~with_:"1" s |>     
-                      String.substr_replace_all ~pattern:"two" ~with_:"2" |>     
-                      String.substr_replace_all ~pattern:"three" ~with_:"3" |>     
-                      String.substr_replace_all ~pattern:"four" ~with_:"4" |>     
-                      String.substr_replace_all ~pattern:"five" ~with_:"5" |>     
-                      String.substr_replace_all ~pattern:"six" ~with_:"6" |>     
-                      String.substr_replace_all ~pattern:"seven" ~with_:"7" |>     
-                      String.substr_replace_all ~pattern:"eigh" ~with_:"8" |>     
-                      String.substr_replace_all ~pattern:"nine" ~with_:"9"
-
-let convertList l = Iter.of_list l |> Iter.to_str |> convertString |> Iter.of_str |> Iter.to_list
+             ("nine","9")] |> (fun a -> List.nth_exn a 0)) (*  List.is_prefix ~prefix:"one" c ()) *)
 
 let () = 
  let file: string = In_channel.with_file ~binary:false "data" ~f:In_channel.input_all in 
@@ -55,8 +36,8 @@ let () =
      | Ok v -> let ans = 
                     Iter.of_list v |> Iter.map 
                         (fun w -> let u = List.filter ~f:Char.is_digit (convertList w) in 
-                           let f = List.nth u 0 |> fromSome in
-                           let t = List.last u |> fromSome in
-                           fromSome (Char.get_digit f) * 10 + fromSome (Char.get_digit t))
+                           let f = List.nth_exn u 0 in
+                           let t = List.last_exn u in
+                           (Char.get_digit_exn f) * 10 + (Char.get_digit_exn t))
                              |> Iter.sum
                in  string_of_int ans |> print_endline
