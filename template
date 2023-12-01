@@ -1,0 +1,13 @@
+open Core
+open Angstrom
+open OUnit
+
+type input = () [@@deriving show]
+    
+let parser = failwith "undefined"
+
+let partA (i : input): string = "not yet implemented"
+
+let partB (i : input): string = "not yet implemented"
+
+let tests = "tests" >::: [TestCase((fun _ -> ()))]
