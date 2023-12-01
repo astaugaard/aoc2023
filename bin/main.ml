@@ -18,10 +18,22 @@ module Day (V : day)  = struct
        match data with
         | Error e -> print_endline e
         | Ok a -> if verbose then print_endline (V.show_input a) else ();
+
                   print_endline "======= Part A =======";
+                  let beforeTime = Time_ns.now () in 
+
                   print_endline (V.partA a);
+
+                  let elapsed = Time_ns.diff (Time_ns.now ()) beforeTime  in
+                  print_endline ("elapsed time:" ^ (Time_ns.Span.to_string elapsed));
+
                   print_endline "======= Part B =======";
-                  print_endline (V.partB a)
+                  let beforeTimeB = Time_ns.now () in 
+
+                  print_endline (V.partB a);
+
+                  let elapsedB = Time_ns.diff (Time_ns.now ()) beforeTimeB in
+                  print_endline ("elapsed time:" ^ (Time_ns.Span.to_string elapsedB));
 end
 
 module D1 = Day (Days.Day1)
@@ -77,6 +89,9 @@ let days = [D1.runDay;
     D25.runDay]
 
 let run day verbose = 
+  if day = 0 then List.iteri days 
+                  ~f:(fun i f -> Printf.printf "======= Day %i =======" (i+1); 
+                                 f (i+1) verbose) else
   if day > 25 || day < 1 then print_endline "invalid day" 
   else List.nth_exn days (day - 1) day verbose 
 
