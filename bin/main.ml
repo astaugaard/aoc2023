@@ -1,43 +1,51 @@
-open Core;;
-open Angstrom
+open Core
+open Cmdliner
 
+module type day = sig
+  type input
+  val show_input : input -> string
+  val parser : input Angstrom.t
+  val partA : input -> string
+  val partB : input -> string
+  val tests: OUnit.test
+end
 
-(* let number = take_while1 Char.is_digit 
-              |> map ~f:int_of_string *)
+module Day (V : day)  = struct
+    let runDay daynum verbose = 
+       let _ = OUnit.run_test_tt V.tests in
+       let contents = In_channel.read_all ("inputs/day" ^ string_of_int daynum) in
+       let data = Angstrom.parse_string ~consume:Angstrom.Consume.Prefix  V.parser contents in
+       match data with
+        | Error e -> print_endline e
+        | Ok a -> if verbose then print_endline (V.show_input a) else ();
+                  print_endline "======= Part A =======";
+                  print_endline (V.partA a);
+                  print_endline "======= Part B =======";
+                  print_endline (V.partB a)
+end
 
-let parser = sep_by (char '\n') (many1 (not_char '\n'))
+module D1 = Day (Days.Day1)
 
-let rec extend l f = match l with
-  | [] -> []
-  | (_ :: bs) -> f l :: extend bs f
+let days = [D1.runDay]
 
-let str_to_list l = Iter.of_str l |> Iter.to_list
+let run day verbose = 
+  if day > 25 || day < 1 then print_endline "invalid day" 
+  else List.nth_exn days (day - 1) day verbose 
 
-let convertList l = extend l 
-  (fun c -> List.fold ~init:c ~f:
-               (fun str (l,r) -> if List.is_prefix ~prefix:(str_to_list l) str ~equal:Char.equal 
-                                 then str_to_list r 
-                                 else str)
-            [("one","1");
-             ("two","2");
-             ("three","3");
-             ("four","4");
-             ("five","5");
-             ("six","6");
-             ("seven","7");
-             ("eigh","8");
-             ("nine","9")] |> (fun a -> List.nth_exn a 0)) (*  List.is_prefix ~prefix:"one" c ()) *)
+let day = 
+  let doc = "execute day number $(docv)" in
+  Arg.(value & opt int 0 & info ["d";"day"] ~docv:"DAY_NUMBER" ~doc)
 
-let () = 
- let file: string = In_channel.with_file ~binary:false "data" ~f:In_channel.input_all in 
- let data = parse_string ~consume:Consume.Prefix parser file 
- in match data with
-     | Error e -> print_endline ("error" ^ e)
-     | Ok v -> let ans = 
-                    Iter.of_list v |> Iter.map 
-                        (fun w -> let u = List.filter ~f:Char.is_digit (convertList w) in 
-                           let f = List.nth_exn u 0 in
-                           let t = List.last_exn u in
-                           (Char.get_digit_exn f) * 10 + (Char.get_digit_exn t))
-                             |> Iter.sum
-               in  string_of_int ans |> print_endline
+let verbose = 
+  let doc = "print the parser output" in
+  Arg.(value & flag & info ["v";"verbose"] ~docv:"VERBOSE" ~doc)
+
+let cmd = 
+  let doc = "advent of code solutions" in
+  let man = [
+        `S Manpage.s_description;] in
+  let info = Cmd.info "aoc2023" ~version:"0.0" ~doc ~man in
+  Cmd.v info Term.(const run $ day $ verbose)
+    
+
+let () = exit (Cmd.eval cmd)
