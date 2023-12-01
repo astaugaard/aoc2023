@@ -17,6 +17,23 @@ let fromSome a =  match a with
                    | None -> raise (Foo "is none")
                    | Some v -> v
 
+let rec extend l f = match l with
+  | [] -> []
+  | (_ :: bs) -> f l :: extend bs f
+
+let nconvertList l = extend l 
+  (fun c -> List.fold ~init:c ~f:
+               (fun str (l,r) -> List.is_prefix ~prefix:l str ~equal:Char.equal)
+            [("one","1");
+             ("two","2");
+             ("three","3");
+             ("four","4");
+             ("five","5");
+             ("six","6");
+             ("seven","7");
+             ("eigh","8");
+             ("nine","9")]) (*  List.is_prefix ~prefix:"one" c ()) *)
+
 (* could replace this with a fold *)
 let convertString s = String.substr_replace_all ~pattern:"one" ~with_:"1" s |>     
                       String.substr_replace_all ~pattern:"two" ~with_:"2" |>     
