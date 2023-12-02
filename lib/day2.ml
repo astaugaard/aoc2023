@@ -1,16 +1,13 @@
 open Core
 open Angstrom
 open OUnit
-
+open Utils
                    (* r   g   b *)
 type colors = Colors of int * int * int [@@deriving show]
 
 type game = Game of int * colors list [@@deriving show]
 
 type input = game list [@@deriving show]
-
-let number = take_while1 Char.is_digit 
-              |> map ~f:int_of_string
 
 let colorsParser = (fun l -> List.fold l ~init:(Colors (0,0,0)) ~f:(fun acc b -> b acc)) <$> sep_by (string ", ") 
                    ((fun n c -> c n) <$> number <*> 
@@ -38,4 +35,5 @@ let partB (i : input): string = Iter.of_list i |>
                                      * max_of ~f:(fun (Colors(_,_,b)) -> b) colors) |> 
     Iter.sum |> string_of_int
 
-let tests = "tests" >::: [TestCase((fun _ -> ()))]
+let tests = "tests" >::: [golden_test "day2" parser partA "8"; 
+                          golden_test "day2" parser partB "2286"]
