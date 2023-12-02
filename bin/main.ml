@@ -11,10 +11,17 @@ module type day = sig
 end
 
 module Day (V : day)  = struct
-    let runDay daynum verbose = 
-       let _ = OUnit.run_test_tt V.tests in
+    let runDay daynum verbose = Days.Utils.verboseRefUtils := verbose; 
+       let tests = OUnit.run_test_tt V.tests in
        let contents = In_channel.read_all ("inputs/day" ^ string_of_int daynum) in
        let data = Angstrom.parse_string ~consume:Angstrom.Consume.Prefix  V.parser contents in
+       List.iter tests ~f:(fun case -> 
+            match case with
+            | RSuccess (_) -> ()
+            | RFailure (_,s) -> print_endline ("failure: " ^ s)
+            | RError (_,s) -> print_endline ("error: " ^ s)
+            | RSkip (_,s) -> print_endline ("skip: " ^ s)
+            | RTodo (_,s) -> print_endline ("todo: " ^ s));
        match data with
         | Error e -> print_endline e
         | Ok a -> if verbose then print_endline (V.show_input a) else ();
