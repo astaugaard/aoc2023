@@ -11,7 +11,7 @@ module type day = sig
 end
 
 module Day (V : day)  = struct
-    let runDay daynum verbose = Days.Utils.verboseRefUtils := verbose; 
+    let runDay daynum verbose testsVerbose = Days.Utils.testsVerbose := verbose || testsVerbose; 
        let tests = OUnit.run_test_tt V.tests in
        let contents = In_channel.read_all ("inputs/day" ^ string_of_int daynum) in
        let data = Angstrom.parse_string ~consume:Angstrom.Consume.Prefix  V.parser contents in
@@ -26,7 +26,7 @@ module Day (V : day)  = struct
         | Error e -> print_endline e
         | Ok a -> if verbose then print_endline (V.show_input a) else ();
 
-                  print_endline "======= Part A =======";
+                  ANSITerminal.print_string [ANSITerminal.red] "======= Part A =======\n";
                   let beforeTime = Time_ns.now () in 
 
                   print_endline (V.partA a);
@@ -34,7 +34,7 @@ module Day (V : day)  = struct
                   let elapsed = Time_ns.diff (Time_ns.now ()) beforeTime  in
                   print_endline ("elapsed time:" ^ (Time_ns.Span.to_string elapsed));
 
-                  print_endline "======= Part B =======";
+                  ANSITerminal.print_string [ANSITerminal.red] "======= Part B =======\n";
                   let beforeTimeB = Time_ns.now () in 
 
                   print_endline (V.partB a);
@@ -95,12 +95,12 @@ let days = [D1.runDay;
     D24.runDay;
     D25.runDay]
 
-let run day verbose = 
+let run day verbose verboseTests = 
   if day = 0 then List.iteri days 
-                  ~f:(fun i f -> Printf.printf "======= Day %i =======" (i+1); 
-                                 f (i+1) verbose) else
+                  ~f:(fun i f -> ANSITerminal.print_string [ANSITerminal.green] (Printf.sprintf "======= Day %i =======\n" (i+1)); 
+                                 f (i+1) verbose verboseTests) else
   if day > 25 || day < 1 then print_endline "invalid day" 
-  else List.nth_exn days (day - 1) day verbose 
+  else List.nth_exn days (day - 1) day verbose verboseTests
 
 let day = 
   let doc = "execute day number $(docv)" in
@@ -110,12 +110,16 @@ let verbose =
   let doc = "print the parser output" in
   Arg.(value & flag & info ["v";"verbose"] ~docv:"VERBOSE" ~doc)
 
+let testsVerbose = 
+  let doc = "print the parser output during test" in
+  Arg.(value & flag & info ["t";"verbose-tests"] ~docv:"VERBOSE_TESTS" ~doc)
+
 let cmd = 
   let doc = "advent of code solutions" in
   let man = [
         `S Manpage.s_description;] in
   let info = Cmd.info "aoc2023" ~version:"0.0" ~doc ~man in
-  Cmd.v info Term.(const run $ day $ verbose)
+  Cmd.v info Term.(const run $ day $ verbose $ testsVerbose) 
     
 
 let () = exit (Cmd.eval cmd)

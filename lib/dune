@@ -1,4 +1,4 @@
 (library
  (name days)
  (preprocess (pps ppx_show))
- (libraries iter core angstrom ppx_show.runtime cmdliner ounit2))
+ (libraries iter core angstrom ppx_show.runtime cmdliner ounit2 ANSITerminal))
