@@ -35,5 +35,5 @@ let partB (i : input): string = Iter.of_list i |>
                                      * max_of ~f:(fun (Colors(_,_,b)) -> b) colors) |> 
     Iter.sum |> string_of_int
 
-let tests = "tests" >::: [golden_test "day2" parser partA "8"; 
-                          golden_test "day2" parser partB "2286"]
+let tests = "tests" >::: [golden_test "day2" parser partA "8" ~printer:show_input; 
+                          golden_test "day2" parser partB "2286" ~printer:show_input]
