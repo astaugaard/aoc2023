@@ -92,5 +92,10 @@ module Grid = struct
     match move g (dx,dy) with
     | Some a -> Some (extract a)
     | None -> None
+
+  let take_while_in_direction g dir ~f = 
+     Iter.unfoldr Option.(fun g -> g >>= fun g' ->
+                                   (extract g' |> f) >>= fun v -> 
+                                   Some (v,move g' dir )) (Some g)
    
 end
