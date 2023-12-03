@@ -1,5 +1,6 @@
 open Core
 open Angstrom
+open OUnit
 
 
 exception UtilException of string
@@ -28,6 +29,18 @@ let golden_test input parser ?printer part output : OUnit.test = TestCase (fun _
              | _ -> ());
              let ans = part a in
              OUnit.assert_equal ~printer:(fun s -> Printf.sprintf "%s" s) output ans)
+
+let final_answer_test day parser parta partb outputa outputb  : OUnit.test = 
+    let file = In_channel.read_all ("inputs/day" ^ string_of_int day) in 
+    let data = parse_string ~consume:Consume.Prefix parser file in
+    let testthing d p o = match d with
+        | Error s -> assert_failure ("parse error: " ^ s)
+        | Ok a -> let ans = p a in OUnit.assert_equal ~printer:(fun s -> Printf.sprintf " %s" s) o ans in
+    "real answers" >::: [
+        "part a" >:: (fun _ -> testthing data parta outputa);
+        "part b" >:: (fun _ -> testthing data partb outputb)
+    
+    ]
 
 type 'a grid = Grid of 'a array array
 

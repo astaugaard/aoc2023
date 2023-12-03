@@ -36,4 +36,6 @@ let partB (i : input): string = Iter.of_list i |>
     Iter.sum |> string_of_int
 
 let tests = "tests" >::: [golden_test "day2" parser partA "8" ~printer:show_input; 
-                          golden_test "day2" parser partB "2286" ~printer:show_input]
+                          golden_test "day2" parser partB "2286" ~printer:show_input;
+                          final_answer_test 2 parser partA partB "2164" "69929"
+                         ]

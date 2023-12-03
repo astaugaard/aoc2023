@@ -72,4 +72,5 @@ let partB (i : input): string = Grid.extend_from_grid i get_loc_sumb |>
                                 Grid.sum |> string_of_int
 
 let tests = "tests" >::: [golden_test "day3" parser partA "4361" ~printer:show_input;
-                          golden_test "day3" parser partB "467835" ~printer:show_input]
+                          golden_test "day3" parser partB "467835" ~printer:show_input;
+                          final_answer_test 3 parser partA partB "553825" "93994191"]
