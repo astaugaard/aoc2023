@@ -7,12 +7,6 @@ type input = Input of int list * int list [@@deriving show]
     
 let parser = (fun a b -> Input (a,b)) <$> (string "Time: " *> many1 (char ' ') *> sep_by1 (many1 (char ' ')) number) <*> (string "\nDistance:" *> many1 (char ' ') *> sep_by1 (many1 (char ' ')) number)
 
-
-(* d = tT - t^2 *)
-(* -t^2 + tT - d = 0 
-t = (T +- sqrt(T^2 - 4 * d))/2
-
-*)
 let winningTimes (time:int) (distance:int)  = 
    let rt = Float.sqrt(float_of_int (time * time - 4 * distance)) in
    let maxT = int_of_float (Float.round_up((float_of_int time +. rt) /. 2.)) - 1 in 
