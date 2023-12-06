@@ -14,7 +14,10 @@ module Day (V : day)  = struct
     let runDay daynum verbose testsVerbose = Days.Utils.testsVerbose := verbose || testsVerbose; 
        let tests = OUnit.run_test_tt V.tests in
        let contents = In_channel.read_all ("inputs/day" ^ string_of_int daynum) in
+       let beforeTimeP = Time_ns.now () in 
        let data = Angstrom.parse_string ~consume:Angstrom.Consume.Prefix  V.parser contents in
+       let elapsedP = Time_ns.diff (Time_ns.now ()) beforeTimeP in
+       print_endline ("parser time: " ^ Time_ns.Span.to_string elapsedP);
        List.iter tests ~f:(fun case -> 
             match case with
             | RSuccess (_) -> ()
@@ -29,17 +32,21 @@ module Day (V : day)  = struct
                   ANSITerminal.print_string [ANSITerminal.red] "======= Part A =======\n";
                   let beforeTime = Time_ns.now () in 
 
-                  print_endline (V.partA a);
+                  let partASolution = V.partA a in
+                  let elapsed = Time_ns.diff (Time_ns.now ()) beforeTime in
 
-                  let elapsed = Time_ns.diff (Time_ns.now ()) beforeTime  in
+                  print_endline partASolution;
+
                   print_endline ("elapsed time:" ^ (Time_ns.Span.to_string elapsed));
 
                   ANSITerminal.print_string [ANSITerminal.red] "======= Part B =======\n";
                   let beforeTimeB = Time_ns.now () in 
 
-                  print_endline (V.partB a);
+                  let partBSolution = V.partB a in
 
                   let elapsedB = Time_ns.diff (Time_ns.now ()) beforeTimeB in
+                  print_endline partBSolution;
+
                   print_endline ("elapsed time:" ^ (Time_ns.Span.to_string elapsedB));
 end
 
