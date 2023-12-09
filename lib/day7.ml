@@ -42,7 +42,7 @@ let main_case = mapCompare compare ~f:handvalue
 let partAcompare = composeCompare main_case fallback
 
 let partA (i : input): string = 
-    List.sort ~compare:(mapCompare ~f:(fun (a,b) -> a) partAcompare) i |>
+    List.sort ~compare:(mapCompare ~f:(fun (a,_) -> a) partAcompare) i |>
     List.mapi ~f:(fun i (_,a) -> (i+1) * a) |>
     List.fold ~init:0 ~f:(+) |> string_of_int
 
@@ -77,7 +77,7 @@ let fallback = List.compare (mapCompare compare ~f:valueJ)
 let partBcompare = composeCompare main_caseB fallback
 
 let partB (i : input): string = 
-    List.sort ~compare:(mapCompare ~f:(fun (a,b) -> a) partBcompare) i |>
+    List.sort ~compare:(mapCompare ~f:(fun (a,_) -> a) partBcompare) i |>
     List.mapi ~f:(fun i (_,a) -> (i+1) * a) |>
     List.fold ~init:0 ~f:(+) |> string_of_int
 
