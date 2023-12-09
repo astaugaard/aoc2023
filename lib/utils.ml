@@ -14,6 +14,8 @@ let str_to_list l = Iter.of_str l |> Iter.to_list
 let number = take_while1 Char.is_digit 
               |> map ~f:int_of_string
 
+let negativeNumber = (fun a b -> if a then -b else b) <$> option false (const true <$> char '-') <*> number
+
 let testsVerbose = ref false
 
 (* input is a filepath output is the string returned *)
