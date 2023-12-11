@@ -49,6 +49,9 @@ type 'a grid = Grid of 'a array array
 type 'a gridComonad = GridComonad of 'a grid * int * int
 
 module Grid = struct
+  let make_sized h w i = 
+    let one_row = Array.create ~len:w i in
+    Array.init h ~f:(fun _ -> Array.copy one_row)
   
   let get_grid (GridComonad (g,_,_)) = g
 
@@ -99,5 +102,14 @@ module Grid = struct
      Iter.unfoldr Option.(fun g -> g >>= fun g' ->
                                    (extract g' |> f) >>= fun v -> 
                                    Some (v,move g' dir )) (Some g)
-   
+
+  let focus_1true (Grid a) ~f = 
+    let (x,y,_) = Iter.of_array a |> Iter.zip_i |> 
+        Iter.flat_map (fun (y,r) -> Iter.of_array r |> 
+                                Iter.mapi (fun x a -> (x,y,a)) |> 
+                                Iter.filter (fun (_,_,s) -> f s)) |>
+        Iter.head_exn in
+   GridComonad (Grid a,x,y) 
+
+  let get_location (GridComonad (_,x,y)) = (x,y)
 end
