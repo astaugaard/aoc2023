@@ -56,9 +56,13 @@ let checkrestfine springs i =
   Iter.map (fun l -> isNotBroken (getopt springs l)) |> 
   Iter.fold (&&) true
 
+let scan_right ~f ~init list = List.fold_right list ~f:(fun next (acc,lst) -> (next+acc,next+acc::lst)) ~init:(init,[]) 
+    |> (fun (_,b) -> b)
+
 let count springs sizes = 
   let h = Array.length springs in
   let w = Array.length sizes in
+  let sums = Array.to_list sizes |> scan_right ~f:(+) ~init:0 |> Array.of_list in
   memoGridRec w h 
    (fun f si sp ->
      if si >= w then
@@ -69,9 +73,9 @@ let count springs sizes =
         else
             0
      else 
-     if sp >= h then
-        0
-     else 
+     let remainingNeed = Array.get sums si + (w - si - 1) in
+     if h - sp < remainingNeed then 0
+     else
      let n = Array.get sizes si in
      let check () = checknnext springs sp n in
      let fine () = f si (sp + 1) in
@@ -85,9 +89,37 @@ let count springs sizes =
 let partA (i : input): string = Iter.of_list i |>
   Iter.map (fun (sp,si) -> count (Array.of_list sp) (Array.of_list si)) |>
   Iter.sum |> string_of_int
+
+let repeat5inter a i =
+  Iter.from_iter 
+    (fun h ->  
+        Iter.iter h i;
+        h a;
+        Iter.iter h i;
+        h a;
+        Iter.iter h i;
+        h a;
+        Iter.iter h i;
+        h a;
+        Iter.iter h i;
+    )
+
+let repeat5 i =
+  Iter.from_iter 
+    (fun h ->  
+        Iter.iter h i;
+        Iter.iter h i;
+        Iter.iter h i;
+        Iter.iter h i;
+        Iter.iter h i;
+    )
   
 
 let partB (i : input): string = Iter.of_list i |>
-  Iter.map (fun (sp,si) -> count (Array.of_list sp) (Array.of_list si)) |>
+  Iter.map (fun (sp,si) -> 
+    count (Iter.of_list sp |> repeat5inter UnKnown |> Iter.to_array) 
+          (Iter.of_list si |> repeat5 |> Iter.to_array)) |> Iter.sum |> string_of_int
 
-let tests = "tests" >::: [golden_test "day12" parser partA "21" ~printer:show_input; final_answer_test 12 parser partA partB "7251" "0"]
+let tests = "tests" >::: [golden_test "day12" parser partA "21" ~printer:show_input; 
+                          golden_test "day12" parser partB "525152" ~printer:show_input; 
+                          final_answer_test 12 parser partA partB "7251" "2128386729962"]
