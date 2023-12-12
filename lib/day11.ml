@@ -39,7 +39,7 @@ let countInColAndRow i =
    Iter.flat_map(fun (rn,r) -> 
     Iter.of_array r |> 
     Iter.mapi (fun cn a -> (rn,cn,a)) |> 
-    Iter.filter (fun (_,_,a) -> a)) in
+    Iter.filter (fun (_,_,a) -> a)) |> Iter.persistent in
   let iterRow = galaxies |> Iter.map (fun (r,_,_) -> (r,())) in
   let galaxyRowCount = constructArrayOfIter iterRow ~s:h ~f:(fun _ a -> succ a) ~init:0 in
   let iterCol = galaxies |> Iter.map (fun (_,c,_) -> (c,())) in
