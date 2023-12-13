@@ -56,7 +56,7 @@ let checkrestfine springs i =
   Iter.map (fun l -> isNotBroken (getopt springs l)) |> 
   Iter.fold (&&) true
 
-let scan_right ~f ~init list = List.fold_right list ~f:(fun next (acc,lst) -> (next+acc,next+acc::lst)) ~init:(init,[]) 
+let scan_right ~f ~init list = List.fold_right list ~f:(fun next (acc,lst) -> (f next acc,next+acc::lst)) ~init:(init,[]) 
     |> (fun (_,b) -> b)
 
 let count springs sizes = 
