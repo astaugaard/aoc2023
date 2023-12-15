@@ -127,7 +127,7 @@ let runCycles rocks n =
         let final = applyn advanceCountTilln (runCycle ~w:w ~h:h) postCycle in
         get_load final ~h:h
         
-     | None -> 
+     | None ->
          Hashtbl.set tbl ~key:key ~data:c;
          runCyclesGo postCycle n (c+1) in
 
