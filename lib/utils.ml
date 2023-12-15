@@ -113,3 +113,9 @@ module Grid = struct
 
   let get_location (GridComonad (_,x,y)) = (x,y)
 end
+
+let rec itemParser ls =
+  match ls with
+  | ((c,v) :: list) -> ((fun _ -> v) <$> char c) <|> itemParser list
+  | [] -> fail "no characters matched"
+  
