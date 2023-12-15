@@ -115,10 +115,11 @@ let runCycles rocks n =
   let rec runCyclesGo rocks n c = 
      let postCycle = runCycle rocks ~w:w ~h:h in
      let key = postCycle |> Iter.of_array |> 
-          Iter.map (fun a -> Iter.of_list a |> Iter.map (fun (i,t) ->
+          Iter.map (fun a -> Iter.of_list a |> Iter.filter (fun (_,t) -> 
             match t with
-            | Rolling -> (h + w) * i 
-            | _ -> i) |> Iter.to_list) |> Iter.to_list in
+            | Rolling -> true
+            | _ -> false
+          ) |> Iter.map (fun (i,_) -> i) |> Iter.to_list) |> Iter.to_list in
 
      match Hashtbl.find tbl key with
      | Some a -> 
