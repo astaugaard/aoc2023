@@ -11,20 +11,22 @@ module type day = sig
 end
 
 module Day (V : day)  = struct
-    let runDay daynum verbose testsVerbose = Days.Utils.testsVerbose := verbose || testsVerbose; 
-       let tests = OUnit.run_test_tt V.tests in
-       let contents = In_channel.read_all ("inputs/day" ^ string_of_int daynum) in
-       let beforeTimeP = Time_ns.now () in 
-       let data = Angstrom.parse_string ~consume:Angstrom.Consume.Prefix  V.parser contents in
-       let elapsedP = Time_ns.diff (Time_ns.now ()) beforeTimeP in
-       print_endline ("parser time: " ^ Time_ns.Span.to_string elapsedP);
-       List.iter tests ~f:(fun case -> 
+    let runDay daynum verbose testsVerbose skiptest = Days.Utils.testsVerbose := verbose || testsVerbose; 
+       (if not skiptest then 
+         let tests = OUnit.run_test_tt V.tests in
+         List.iter tests ~f:(fun case -> 
             match case with
             | RSuccess (_) -> ()
             | RFailure (_,s) -> print_endline ("failure: " ^ s)
             | RError (_,s) -> print_endline ("error: " ^ s)
             | RSkip (_,s) -> print_endline ("skip: " ^ s)
             | RTodo (_,s) -> print_endline ("todo: " ^ s));
+       else ());
+       let contents = In_channel.read_all ("inputs/day" ^ string_of_int daynum) in
+       let beforeTimeP = Time_ns.now () in 
+       let data = Angstrom.parse_string ~consume:Angstrom.Consume.Prefix  V.parser contents in
+       let elapsedP = Time_ns.diff (Time_ns.now ()) beforeTimeP in
+       print_endline ("parser time: " ^ Time_ns.Span.to_string elapsedP);
        match data with
         | Error e -> print_endline e
         | Ok a -> if verbose then print_endline (V.show_input a) else ();
@@ -102,12 +104,12 @@ let days = [D1.runDay;
     D24.runDay;
     D25.runDay]
 
-let run day verbose verboseTests = 
+let run day verbose verboseTests skiptest = 
   if day = 0 then List.iteri days 
                   ~f:(fun i f -> ANSITerminal.print_string [ANSITerminal.green] (Printf.sprintf "======= Day %i =======\n" (i+1)); 
-                                 f (i+1) verbose verboseTests) else
+                                 f (i+1) verbose verboseTests skiptest) else
   if day > 25 || day < 1 then print_endline "invalid day" 
-  else List.nth_exn days (day - 1) day verbose verboseTests
+  else List.nth_exn days (day - 1) day verbose verboseTests skiptest
 
 let day = 
   let doc = "execute day number $(docv)" in
@@ -121,12 +123,16 @@ let testsVerbose =
   let doc = "print the parser output during test" in
   Arg.(value & flag & info ["t";"verbose-tests"] ~docv:"VERBOSE_TESTS" ~doc)
 
+let skipTests = 
+  let doc = "skip executing tests" in
+  Arg.(value & flag & info ["s";"skip"] ~docv: "SKIP" ~doc)
+
 let cmd = 
   let doc = "advent of code solutions" in
   let man = [
         `S Manpage.s_description;] in
   let info = Cmd.info "aoc2023" ~version:"0.0" ~doc ~man in
-  Cmd.v info Term.(const run $ day $ verbose $ testsVerbose) 
+  Cmd.v info Term.(const run $ day $ verbose $ testsVerbose $ skipTests) 
     
 
 let () = exit (Cmd.eval cmd)
