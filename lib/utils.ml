@@ -112,6 +112,9 @@ module Grid = struct
    GridComonad (Grid a,x,y) 
 
   let get_location (GridComonad (_,x,y)) = (x,y)
+
+  let iteri (Grid a) ~f = Iter.of_array a |> Iter.iteri 
+   (fun y r -> Iter.of_array r |> Iter.iteri (fun x v -> f x y v))
 end
 
 let rec itemParser ls =
