@@ -36,7 +36,7 @@ let sort_into_columns i ~size =
   Iter.iter (fun (r,c,t) -> Array.set ar c ((r,t)::Array.get ar c)) i;
   ar
 
-let rotateCoord r c w h = (c,w-r-1)
+let rotateCoord r c w _ = (c,w-r-1)
 
 let compact rocks = 
  let rec compactgo rs n = 
@@ -134,7 +134,7 @@ let runCycles rocks n =
 
   let nrocks = Iter.of_list rocks |> Iter.zip_i |> Iter.rev |> Iter.flat_map
        (fun (r,a) -> Iter.of_list a |> Iter.zip_i |> 
-                 Iter.filter (fun (c,t) ->
+                 Iter.filter (fun (_,t) ->
                     match t with
                     | Empty -> false
                     | _ -> true) |> Iter.map (fun (c,t) -> (r,c,t))) |> sort_into_columns ~size:w in

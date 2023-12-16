@@ -88,12 +88,13 @@ let partA (i : input): string =
   Iter.length locs |> string_of_int
 
     
-let rec mapRangeReduce pool start amount ~f ~comb ~init = if amount < 3 
+let rec mapRangeReduce pool start amount ~f ~comb ~init = if amount < 4
   then List.range start (start + amount) |> List.map ~f:f |> List.fold ~init:init ~f:comb
   else let o = T.async pool (fun _ -> mapRangeReduce pool start (amount/2) ~f:f ~comb:comb ~init:init) in 
        let v = T.async pool (fun _ -> mapRangeReduce pool (start + amount/2) (amount - amount/2) ~f:f ~comb:comb ~init:init) in
        comb (T.await pool o) (T.await pool v) 
   
+
 let parPartB i pool = 
   let (w,h) = Grid.size i in
   let rowMaxs = T.async pool (fun _ -> 
@@ -104,17 +105,16 @@ let parPartB i pool =
 
   let colMaxs = T.async pool (fun _ -> 
     mapRangeReduce pool 0 h ~f:(fun ind -> 
-        let fromTop = T.async pool (fun _ -> simulate i (ind,0) (0,-1) |> Iter.length) in
-        let fromBottom = T.async pool (fun _ -> simulate i (ind,h-1) (0,1) |> Iter.length) in
+        let fromTop = T.async pool (fun _ -> simulate i (ind,0) (0,1) |> Iter.length) in
+        let fromBottom = T.async pool (fun _ -> simulate i (ind,h-1) (0,-1) |> Iter.length) in
         max (T.await pool fromTop) (T.await pool fromBottom)) ~comb:max ~init:0) in
   
   max (T.await pool rowMaxs) (T.await pool colMaxs)
 
-
 let partB (i : input): string = 
-  let numThreads = 6 in
-  let pool = T.setup_pool ~num_domains:(numThreads - 1) () in
-  let res = T.run pool (fun _ -> parPartB i pool) in
+  let numThreads = 4 in
+  let global_pool = T.setup_pool ~num_domains:(numThreads - 1) () in
+  let res = T.run global_pool (fun _ -> parPartB i global_pool) in
    
   string_of_int res
 

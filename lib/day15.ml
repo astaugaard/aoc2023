@@ -4,7 +4,7 @@ open OUnit
 
 type input = string list [@@deriving show]
     
-let parser = sep_by (char ',') (take_while1 (fun c -> Char.(c <> ',') && Char.(c <> '\n')))
+let parser = sep_by (char ',') (take_while1 (fun c -> c <> ',' && c <> '\n'))
 
 
 let hash s = Iter.of_str s |>
