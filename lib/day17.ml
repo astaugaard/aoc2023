@@ -23,8 +23,8 @@ let consCompare compa compb = if compa = 0 then compb else compa
 
 module PQueue = CCHeap.Make 
   (struct 
-    type t = int * location
-    let leq (a,_) (b,_) = a <= b
+    type t = int * int * location
+    let leq (a,_,_) (b,_,_) = a <= b
    end
   )
 
@@ -45,19 +45,19 @@ module Test = struct
 end 
 
 
-let dikstras ~f ~s ~e =
+let dikstras ~f ~s ~e ~dist =
   let rec dikstrasGo queue haveVisited = 
-    let (nq,(v,loc)) = PQueue.take_exn queue in
+    let (nq,(v,d,loc)) = PQueue.take_exn queue in
     if Set.mem haveVisited loc then
         dikstrasGo nq haveVisited
     else
     (
      if e loc then
-        v
+        d
     else 
         (
-        dikstrasGo (PQueue.add_iter nq (f loc |> Iter.map (fun (co,a) -> (co+v,a)))) (Set.add haveVisited loc)))
-  in dikstrasGo (PQueue.of_iter (f s)) 
+        dikstrasGo (PQueue.add_iter nq (f loc |> Iter.map (fun (co,a) -> (d+co+dist loc,d+co,a)))) (Set.add haveVisited loc)))
+  in dikstrasGo (PQueue.of_iter (f s |> Iter.map (fun (co,a) -> (co+dist a,co,a))) )
      (Set.empty (module Test))
 
 let turnDir (dx,dy) = 
@@ -84,8 +84,8 @@ let nextLocs i (x,y,times,dir) =
   in Iter.map (applyDir i ~old:dir x y times) nextDirs |> Iter.keep_some
 
 let partA (i : input): string = 
-   let (w,h) = Grid.size i in
-   dikstras ~s:(0,0,0,(0,0)) ~f:(nextLocs i) ~e:(fun (x,y,_,_) -> x >= w - 1 && y >= h - 1) |> string_of_int
+   let (h,w) = Grid.size i in
+   dikstras ~s:(0,0,0,(0,0)) ~f:(nextLocs i) ~e:(fun (x,y,_,_) -> x >= w - 1 && y >= h - 1) ~dist:(fun (x,y,_,_) -> w - x + h - y) |> string_of_int
 
 let nextLocsU i (x,y,times,dir) = 
   let nextDirs = if times = 0 then
@@ -98,8 +98,8 @@ let nextLocsU i (x,y,times,dir) =
   in Iter.map (applyDir i ~old:dir x y times) nextDirs |> Iter.keep_some
 
 let partB (i : input): string = 
-  let (w,h) = Grid.size i in
-  Printf.printf "w: %d h:%d\n" w h;
-  dikstras ~s:(0,0,0,(0,0)) ~f:(nextLocsU i) ~e:(fun (x,y,e,_) -> (x >= h - 1) && (y >= w - 1) && (e >= 4)) |> string_of_int
+  let (h,w) = Grid.size i in
+  Printf.printf "h: %d w:%d\n" h h;
+  dikstras ~s:(0,0,0,(0,0)) ~f:(nextLocsU i) ~e:(fun (x,y,e,_) -> (x >= w - 1) && (y >= h - 1) && (e >= 4)) ~dist:(fun (x,y,_,_) -> w - x + h - y) |> string_of_int
 
 let tests = "tests" >::: [golden_test "day17" parser partA ~printer:show_input "102"; golden_test "day17" parser partB ~printer:show_input "94"; golden_test "day17b" parser partB ~printer:show_input "71"]
