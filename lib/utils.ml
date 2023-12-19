@@ -120,4 +120,41 @@ let rec itemParser ls =
   match ls with
   | ((c,v) :: list) -> ((fun _ -> v) <$> char c) <|> itemParser list
   | [] -> fail "no characters matched"
-  
+
+
+module type distanceType = sig
+    type t
+    val compare : t -> t -> int
+    val concat : t -> t -> t
+end
+
+module MakeAstar (Dist: distanceType) (Location: Set.Elt) = struct
+    module PQueue = CCHeap.Make 
+      (struct 
+        type t = Dist.t * Dist.t * Location.t
+        let leq (a,_,_) (b,_,_) = Dist.compare a b < 0
+       end
+      )
+    
+    module LocSet = Set.Make(Location)
+    
+    let astar ~f ~s ~e ~dist =
+      let rec dikstrasGo queue haveVisited = 
+        let (nq,(_,d,loc)) = PQueue.take_exn queue in
+        if Set.mem haveVisited loc then
+            dikstrasGo nq haveVisited
+        else
+        (
+         if e loc then
+            d
+        else 
+            (dikstrasGo 
+              (PQueue.add_iter nq 
+                (f loc |> 
+                  Iter.map (fun (co,a) -> (Dist.concat (Dist.concat d co) (dist loc),
+                    Dist.concat d co,a)))) 
+              (Set.add haveVisited loc)))
+    
+      in dikstrasGo (PQueue.of_iter (f s |> Iter.map (fun (co,a) -> (Dist.concat co (dist a),co,a))) )
+         LocSet.empty
+end

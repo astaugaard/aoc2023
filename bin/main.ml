@@ -34,6 +34,7 @@ module Day (V : day)  = struct
                   ANSITerminal.print_string [ANSITerminal.red] "======= Part A =======\n";
             
                   let beforeTime = Time_ns.now () in 
+                  
     
                   let partASolution = V.partA a in
                   let elapsed = Time_ns.diff (Time_ns.now ()) beforeTime in

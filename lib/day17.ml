@@ -21,13 +21,6 @@ let print_loc (x,y,times,(dx,dy)) = Printf.printf "%d %d %d %d %d\n" x y times d
 
 let consCompare compa compb = if compa = 0 then compb else compa
 
-module PQueue = CCHeap.Make 
-  (struct 
-    type t = int * int * location
-    let leq (a,_,_) (b,_,_) = a <= b
-   end
-  )
-
 let comparelocs (x,y,z,(dx,dy)) (x1,y1,z1,(dx1,dy1)) = 
    let xs = compare x x1 in
    if xs <> 0 then xs else
@@ -39,28 +32,22 @@ let comparelocs (x,y,z,(dx,dy)) (x1,y1,z1,(dx1,dy1)) =
    if dxs <> 0 then dxs else
    compare dy dy1
 
-module Test = struct 
+module Location = struct 
     type t = location
-    include (val Comparator.make ~compare:comparelocs ~sexp_of_t:sexp_of_location) 
+    let compare a b = comparelocs a b
+    let t_of_sexp = location_of_sexp
+    let sexp_of_t = sexp_of_location
 end 
 
+module Distance = struct
+    type t = int
+    let compare = compare
+    let concat a b = a + b
+end
 
-let dikstras ~f ~s ~e ~dist =
-  let rec dikstrasGo queue haveVisited = 
-    let (nq,(v,d,loc)) = PQueue.take_exn queue in
-    if Set.mem haveVisited loc then
-        dikstrasGo nq haveVisited
-    else
-    (
-     if e loc then
-        d
-    else 
-        (
-        dikstrasGo (PQueue.add_iter nq (f loc |> Iter.map (fun (co,a) -> (d+co+dist loc,d+co,a)))) (Set.add haveVisited loc)))
-  in dikstrasGo (PQueue.of_iter (f s |> Iter.map (fun (co,a) -> (co+dist a,co,a))) )
-     (Set.empty (module Test))
+module AStar = MakeAstar(Distance) (Location)
 
-let turnDir (dx,dy) = 
+let turnDir (dx,_) = 
   if dx <> 0 then
     [(0,-1);(0,1)] |> Iter.of_list
   else [(1,0);(-1,0)] |> Iter.of_list 
@@ -85,7 +72,7 @@ let nextLocs i (x,y,times,dir) =
 
 let partA (i : input): string = 
    let (h,w) = Grid.size i in
-   dikstras ~s:(0,0,0,(0,0)) ~f:(nextLocs i) ~e:(fun (x,y,_,_) -> x >= w - 1 && y >= h - 1) ~dist:(fun (x,y,_,_) -> w - x + h - y) |> string_of_int
+   AStar.astar ~s:(0,0,0,(0,0)) ~f:(nextLocs i) ~e:(fun (x,y,_,_) -> x >= w - 1 && y >= h - 1) ~dist:(fun (x,y,_,_) -> w - x + h - y) |> string_of_int
 
 let nextLocsU i (x,y,times,dir) = 
   let nextDirs = if times = 0 then
@@ -99,7 +86,6 @@ let nextLocsU i (x,y,times,dir) =
 
 let partB (i : input): string = 
   let (h,w) = Grid.size i in
-  Printf.printf "h: %d w:%d\n" h h;
-  dikstras ~s:(0,0,0,(0,0)) ~f:(nextLocsU i) ~e:(fun (x,y,e,_) -> (x >= w - 1) && (y >= h - 1) && (e >= 4)) ~dist:(fun (x,y,_,_) -> w - x + h - y) |> string_of_int
+  AStar.astar ~s:(0,0,0,(0,0)) ~f:(nextLocsU i) ~e:(fun (x,y,e,_) -> (x >= w - 1) && (y >= h - 1) && (e >= 4)) ~dist:(fun (x,y,_,_) -> w - x + h - y) |> string_of_int
 
 let tests = "tests" >::: [golden_test "day17" parser partA ~printer:show_input "102"; golden_test "day17" parser partB ~printer:show_input "94"; golden_test "day17b" parser partB ~printer:show_input "71"]

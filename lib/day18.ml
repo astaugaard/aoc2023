@@ -34,7 +34,6 @@ let findArea i =
 
 let partA (i : input): string = 
   let (area,borderPoints) = findArea i in
-  Printf.printf "2x area: %d border: %d\n" area borderPoints;
   (area + 2 - borderPoints)/2 + borderPoints |> string_of_int
     
 
